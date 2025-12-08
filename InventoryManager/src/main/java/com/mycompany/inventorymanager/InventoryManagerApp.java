@@ -1,0 +1,434 @@
+package com.mycompany.inventorymanager;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
+
+public class InventoryManagerApp extends JFrame implements ActionListener {
+    
+    private JTable overview;
+    private DefaultTableModel tableModel;
+    private JButton btnAdd, btnDelete, btnUpdate, btnStock, btnOrder, btnSupplier, btnProduct, btnSearch, btnLowStockReport;
+    private JLabel lbProdPage, lblId, lblName, lblCat, lblQty, lblPrice, lbSupp;
+    private JTextField suppField, idField, nameField, catField, qtyField, priceField, searchField;
+    private JPanel mainContentPanel;
+    private JPanel loginPanel;
+    private CardLayout cardLayout;
+    private JTextField loginUsernameField;
+    private JPasswordField loginPasswordField;
+    private JButton loginButton, registerButton, switchToRegisterButton, switchToLoginButton;
+    private JLabel loginTitleLabel;
+    
+    private static List<User> users = new ArrayList<>();
+    
+    private static class User {
+        private String username;
+        private String password;
+
+        public User(String username, String password) {
+            this.username = username;
+            this.password = password;
+        }
+        public String getUsername() { return username; }
+        public String getPassword() { return password; }
+    }
+
+    public InventoryManagerApp() {
+        setTitle("Inventory Management System");
+        
+        setSize(400, 350); 
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null); 
+        
+        if (users.isEmpty()) {
+            users.add(new User("admin", "pass"));
+        }
+        cardLayout = new CardLayout();
+        mainContentPanel = new JPanel(cardLayout);
+        add(mainContentPanel);
+        initLoginPanel();
+        initInventoryPanel();
+        showLoginPanel();
+    }
+
+    private void initLoginPanel() {  
+        loginPanel = new JPanel(null); 
+        loginPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); 
+        loginTitleLabel = new JLabel("User Login", SwingConstants.CENTER);
+        loginTitleLabel.setFont(new Font("Arial", Font.BOLD, 18)); 
+        loginTitleLabel.setBounds(100, 30, 200, 30); 
+        loginPanel.add(loginTitleLabel);
+
+        JLabel lblUsername = new JLabel("Username:");
+        lblUsername.setBounds(50, 80, 80, 25);
+        loginUsernameField = new JTextField(15);
+        loginUsernameField.setBounds(140, 80, 210, 25);
+        loginPanel.add(lblUsername);
+        loginPanel.add(loginUsernameField);
+
+        JLabel lblPassword = new JLabel("Password:");
+        lblPassword.setBounds(50, 120, 80, 25);
+        loginPasswordField = new JPasswordField(15);
+        loginPasswordField.setBounds(140, 120, 210, 25);
+        
+        loginPanel.add(lblPassword);
+        loginPanel.add(loginPasswordField);
+
+        loginButton = new JButton("Login");
+        loginButton.setBounds(100, 170, 90, 30);
+        loginButton.addActionListener(this);
+        loginPanel.add(loginButton);
+        
+        registerButton = new JButton("Register");
+        registerButton.setBounds(210, 170, 100, 30);
+        registerButton.addActionListener(this);
+        loginPanel.add(registerButton);
+
+        switchToRegisterButton = new JButton("New User? Register");
+        switchToRegisterButton.setBounds(100, 220, 210, 25);
+        switchToRegisterButton.addActionListener(this);
+        loginPanel.add(switchToRegisterButton);
+
+        switchToLoginButton = new JButton("Back to Login");
+        switchToLoginButton.setBounds(100, 220, 210, 25);
+        switchToLoginButton.addActionListener(this);
+        loginPanel.add(switchToLoginButton);
+
+        mainContentPanel.add(loginPanel, "Login");
+    }
+
+    private void initInventoryPanel() {
+        
+        JPanel inventoryPanel = new JPanel(null); 
+        
+        lbProdPage = new JLabel("PRODUCTS");
+        lbProdPage.setBounds(200, 60, 300, 30);
+        lbProdPage.setFont(new Font("Arial", Font.BOLD, 25));
+        inventoryPanel.add(lbProdPage);
+        
+        searchField = new JTextField("");
+        searchField.setBounds(200, 20, 370, 30);
+        inventoryPanel.add(searchField);
+        
+        btnSearch = new JButton("Search");
+        btnSearch.setBounds(580, 20, 100, 30);
+        btnSearch.addActionListener(this);
+        inventoryPanel.add(btnSearch);
+        
+        btnLowStockReport = new JButton("Low Stock Report");
+        btnLowStockReport.setBounds(700, 20, 240, 30);
+        btnLowStockReport.addActionListener(this);
+        inventoryPanel.add(btnLowStockReport);
+        
+        String[] columnNames = {"ID", "Name", "Type", "Quantity", "Supplier ID", "Price"};
+        tableModel = new DefaultTableModel(columnNames, 0);
+        overview = new JTable(tableModel);
+        
+        JScrollPane scrollPane = new JScrollPane(overview);
+        scrollPane.setBounds(200, 100, 480, 430);
+        inventoryPanel.add(scrollPane);
+        
+        btnProduct = new JButton("Products");
+        btnProduct.setBounds(50, 100, 120, 35);
+        btnProduct.addActionListener(this); 
+        inventoryPanel.add(btnProduct);
+
+        btnOrder = new JButton("Orders");
+        btnOrder.setBounds(50, 200, 120, 35);
+        btnOrder.addActionListener(this);
+        inventoryPanel.add(btnOrder);
+
+        btnStock = new JButton("Stocks");
+        btnStock.setBounds(50, 300, 120, 35);
+        btnStock.addActionListener(this);
+        inventoryPanel.add(btnStock);
+
+        btnSupplier = new JButton("Suppliers");
+        btnSupplier.setBounds(50, 400, 120, 35);
+        btnSupplier.addActionListener(this);
+        inventoryPanel.add(btnSupplier);
+        
+        JLabel lbProdDetail = new JLabel("PRODUCT DETAILS");
+        lbProdDetail.setBounds(700, 60, 240, 30);
+        inventoryPanel.add(lbProdDetail);
+
+        lbSupp = new JLabel("Supplier ID:");
+        lbSupp.setBounds(700, 145, 80, 30);
+        inventoryPanel.add(lbSupp);
+
+        lblId = new JLabel("ID:");
+        lblId.setBounds(700, 190, 80, 30);
+        inventoryPanel.add(lblId);
+
+        lblName = new JLabel("Name:");
+        lblName.setBounds(700, 235, 80, 30);
+        inventoryPanel.add(lblName);
+
+        lblCat = new JLabel("Type:");
+        lblCat.setBounds(700, 280, 80, 30);
+        inventoryPanel.add(lblCat);
+
+        lblQty = new JLabel("Quantity:");
+        lblQty.setBounds(700, 325, 80, 30);
+        inventoryPanel.add(lblQty);
+
+        lblPrice = new JLabel("Price:");
+        lblPrice.setBounds(700, 370, 80, 30);
+        inventoryPanel.add(lblPrice);
+
+        suppField = new JTextField();
+        suppField.setBounds(780, 145, 160, 30);
+        inventoryPanel.add(suppField);
+
+        idField = new JTextField();
+        idField.setBounds(780, 190, 160, 30);
+        inventoryPanel.add(idField);
+
+        nameField = new JTextField();
+        nameField.setBounds(780, 235, 160, 30);
+        inventoryPanel.add(nameField);
+
+        catField = new JTextField();
+        catField.setBounds(780, 280, 160, 30);
+        inventoryPanel.add(catField);
+
+        qtyField = new JTextField();
+        qtyField.setBounds(780, 325, 160, 30);
+        inventoryPanel.add(qtyField);
+
+        priceField = new JTextField();
+        priceField.setBounds(780, 370, 160, 30);
+        inventoryPanel.add(priceField);
+
+        btnDelete = new JButton("Delete");
+        btnDelete.setBounds(870, 450, 70, 30);
+        btnDelete.addActionListener(this);
+        inventoryPanel.add(btnDelete);
+        
+        btnUpdate = new JButton("Update");
+        btnUpdate.setBounds(780, 450, 75, 30);
+        btnUpdate.addActionListener(this);
+        inventoryPanel.add(btnUpdate);
+        
+        btnAdd = new JButton("Add");
+        btnAdd.setBounds(700, 450, 70, 30);
+        btnAdd.addActionListener(this);
+        inventoryPanel.add(btnAdd);
+        
+        mainContentPanel.add(inventoryPanel, "Inventory");
+    }
+ 
+    private void showLoginPanel() {
+        cardLayout.show(mainContentPanel, "Login");
+        
+        setSize(400, 350); 
+        setLocationRelativeTo(null); 
+        
+        loginTitleLabel.setText("User Login");
+
+        loginButton.setVisible(true);
+        registerButton.setVisible(false);
+
+        switchToRegisterButton.setVisible(true);
+        switchToLoginButton.setVisible(false);
+        
+        clearLoginFields();
+    }
+    
+    private void showRegisterPanel() {
+        cardLayout.show(mainContentPanel, "Login"); 
+        
+        setSize(400, 350); 
+        setLocationRelativeTo(null);
+        
+        loginTitleLabel.setText("User Registration");
+        
+        loginButton.setVisible(false);
+        registerButton.setVisible(true);
+        
+        switchToRegisterButton.setVisible(false);
+        switchToLoginButton.setVisible(true);
+        
+        clearLoginFields();
+    }
+    
+    private void showInventoryPanel() {
+        cardLayout.show(mainContentPanel, "Inventory");
+        
+        setSize(1000, 650); 
+        setLocationRelativeTo(null); 
+    }
+    
+    private void clearLoginFields() {
+        loginUsernameField.setText("");
+        loginPasswordField.setText("");
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        
+        if (e.getSource() == loginButton) {
+            handleLogin();
+        } else if (e.getSource() == registerButton) {
+            handleRegistration();
+        } else if (e.getSource() == switchToRegisterButton) {
+            showRegisterPanel();
+        } else if (e.getSource() == switchToLoginButton) {
+            showLoginPanel();
+        }
+        
+        else if (e.getSource() == btnAdd) {
+            try {
+                String id = idField.getText().trim();
+                String supplierId = suppField.getText().trim();
+                String name = nameField.getText().trim();
+                String type = catField.getText().trim();
+                String qtyText = qtyField.getText();
+                String priceText = priceField.getText();
+                
+                if (id.isEmpty() || supplierId.isEmpty() || name.isEmpty() || type.isEmpty() || qtyText.isEmpty() || priceText.isEmpty()) { 
+                    JOptionPane.showMessageDialog(this, "Input all Product details.");
+                    return;
+                }
+                
+                int qty = Integer.parseInt(qtyField.getText());
+                double price = Double.parseDouble(priceField.getText());
+
+                tableModel.addRow(new Object[]{id, name, type, qty, supplierId, price}); 
+
+                JOptionPane.showMessageDialog(this, "Product added successfully!");
+                clearFields();
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid Input! Quantity and Price must be numbers.");
+            }
+        } 
+        
+        else if (e.getSource() == btnUpdate) {
+            int selectedRow = overview.getSelectedRow();
+
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(null, "Please select a Product to update.");
+                return;
+            }
+
+            try {
+                String id = idField.getText().trim();
+                String supplierId = suppField.getText().trim();
+                String name = nameField.getText().trim();
+                String type = catField.getText().trim();
+                
+                if (id.isEmpty() || supplierId.isEmpty() || name.isEmpty() || type.isEmpty() || qtyField.getText().isEmpty() || priceField.getText().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "All fields must be filled!");
+                    return;
+                }
+                
+                int qty = Integer.parseInt(qtyField.getText().trim());
+                double price = Double.parseDouble(priceField.getText().trim());
+
+                tableModel.setValueAt(id, selectedRow, 0);       
+                tableModel.setValueAt(name, selectedRow, 1);     
+                tableModel.setValueAt(type, selectedRow, 2);     
+                tableModel.setValueAt(qty, selectedRow, 3);      
+                tableModel.setValueAt(supplierId, selectedRow, 4); 
+                tableModel.setValueAt(price, selectedRow, 5);    
+
+                JOptionPane.showMessageDialog(this, "Product updated successfully!");
+                clearFields();
+                
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Quantity and Price must be valid numbers.");
+            }
+        } 
+        
+        else if (e.getSource() == btnDelete) {
+            int selectedRow = overview.getSelectedRow();
+
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(null, "Please select a Product to delete.");
+                return;
+            }
+            
+            {
+                tableModel.removeRow(selectedRow);
+                JOptionPane.showMessageDialog(null, "Product deleted!");
+                clearFields();
+            }
+        }
+
+        else if (e.getSource() == btnStock){
+            JOptionPane.showMessageDialog(this, "Not yet implemented!");
+        }
+        else if (e.getSource() == btnOrder){
+            JOptionPane.showMessageDialog(this, "Not yet implemented!");
+        }
+        else if (e.getSource() == btnSupplier){
+            JOptionPane.showMessageDialog(this, "Not yet implemented!");
+        }
+        else if (e.getSource() == btnLowStockReport ){
+            JOptionPane.showMessageDialog(this, "Not yet implemented!");
+        }
+        else if (e.getSource() == btnSearch){
+            JOptionPane.showMessageDialog(this, "Not yet implemented!");
+        }
+    }
+
+    private void handleLogin() {
+        String username = loginUsernameField.getText().trim();
+        String password = new String(loginPasswordField.getPassword()).trim();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter both username and password.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        boolean authenticated = false;
+        for (User user : users) {
+            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                authenticated = true;
+                break;
+            }
+        }
+
+        if (authenticated) {
+            JOptionPane.showMessageDialog(this, "Login successful! Welcome to the Inventory Manager.");
+            showInventoryPanel();
+        } else {
+            JOptionPane.showMessageDialog(this, "Invalid username or password.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleRegistration() {
+        String username = loginUsernameField.getText().trim();
+        String password = new String(loginPasswordField.getPassword()).trim();
+
+        if (username.isEmpty() || password.isEmpty() || username.length() < 3 || password.length() < 3) {
+            JOptionPane.showMessageDialog(this, "Username and password must be at least 3 characters.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        for (User user : users) {
+            if (user.getUsername().equalsIgnoreCase(username)) {
+                JOptionPane.showMessageDialog(this, "Username already exists. Please choose another.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        users.add(new User(username, password));
+        JOptionPane.showMessageDialog(this, "Registration successful! You can now log in.");
+        showLoginPanel(); 
+    }
+
+    private void clearFields() {
+        idField.setText("");
+        suppField.setText("");
+        nameField.setText("");
+        catField.setText("");
+        qtyField.setText("");
+        priceField.setText("");
+    }
+}
